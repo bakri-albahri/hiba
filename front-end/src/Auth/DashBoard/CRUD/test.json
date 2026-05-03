@@ -1,0 +1,84 @@
+{
+    "id": 10,
+    "user_id": 21,
+    "student_number": "STU-001009",
+    "program_id": 1,
+    "specialization_id": 1,
+    "is_active_registration": true,
+    "is_exhausted": false,
+    "enrollment_date": null,
+    "notes": null,
+    "created_at": "2026-03-25T22:52:02.000000Z",
+    "updated_at": "2026-03-25T22:52:02.000000Z",
+    "user": {
+        "id": 21,
+        "email": "bakfsfsdfsdfri@gmail.com",
+        "email_verified_at": null,
+        "type": "student",
+        "created_at": "2026-03-25T22:52:02.000000Z",
+        "updated_at": "2026-03-26T19:09:48.000000Z",
+        "full_name": "q",
+        "father_name": "Amen",
+        "mother_name": "mona",
+        "birth_date": "2026-03-06T00:00:00.000000Z",
+        "birth_place": "damascus",
+        "central_registry": "q",
+        "national_id": "42342344332234",
+        "nationality": "Not Syrian",
+        "gender": "male",
+        "mobile": "4234234234234",
+        "address": "damascus ,  midan"
+    },
+    "program": {
+        "id": 1,
+        "name": "Bachelor of Business Administration",
+        "level": "bachelor",
+        "total_years": 5,
+        "created_at": "2026-03-20T19:49:18.000000Z",
+        "updated_at": "2026-03-20T19:49:18.000000Z"
+    },
+    "specialization": {
+        "id": 1,
+        "program_id": 1,
+        "name": "Operations & MIS",
+        "created_at": "2026-03-20T19:49:18.000000Z",
+        "updated_at": "2026-03-20T19:49:18.000000Z"
+    },
+    "academic_records": [
+        {
+            "id": 11,
+            "student_id": 10,
+            "academic_year_id": 1,
+            "study_year_id": 4,
+            "registration_status": "pending",
+            "academic_result": "in_progress",
+            "annual_average": null,
+            "carried_courses_count": 0,
+            "carried_courses_credit_sum": 0,
+            "tuition_paid": false,
+            "auto_promoted": false,
+            "consecutive_failures_in_same_year": 0,
+            "notes": "Initial academic record created from User Provision API.",
+            "created_at": "2026-03-25T22:52:02.000000Z",
+            "updated_at": "2026-03-25T22:52:02.000000Z",
+            "academic_year": {
+                "id": 1,
+                "name": "2025-2026",
+                "is_current": false,
+                "is_closed": true,
+                "start_date": "2025-09-01T00:00:00.000000Z",
+                "end_date": "2026-08-31T00:00:00.000000Z",
+                "created_at": "2026-03-20T19:49:18.000000Z",
+                "updated_at": "2026-03-21T14:33:17.000000Z"
+            },
+            "study_year": {
+                "id": 4,
+                "program_id": 1,
+                "year_number": 4,
+                "name": "Year 4",
+                "created_at": "2026-03-20T19:49:18.000000Z",
+                "updated_at": "2026-03-20T19:49:18.000000Z"
+            }
+        }
+    ]
+}
