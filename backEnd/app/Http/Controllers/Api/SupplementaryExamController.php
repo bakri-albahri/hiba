@@ -18,18 +18,10 @@ class SupplementaryExamController extends Controller
     public function eligibleCourses(int $studentId, Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'academic_year_id' => ['required', 'exists:academic_years,id'],
+            'academic_year_id' => ['nullable', 'exists:academic_years,id'],
         ]);
 
-        $student = Student::with([
-            'user',
-            'courseEnrollments.course',
-            'courseEnrollments.grade',
-            'courseEnrollments.academicYear',
-            'courseEnrollments.studyYear',
-            'courseEnrollments.supplementaryExamRequests',
-        ])->findOrFail($studentId);
-
+        $student = Student::with('user')->findOrFail($studentId);
         $currentUser = $request->user();
 
         if (!$currentUser || !$currentUser->student) {
@@ -44,17 +36,54 @@ class SupplementaryExamController extends Controller
             ], 403);
         }
 
-        $eligibleEnrollments = $student->courseEnrollments
-            ->filter(function ($enrollment) use ($validated) {
-                if ((int) $enrollment->academic_year_id !== (int) $validated['academic_year_id']) {
-                    return false;
-                }
+        $academicYearId = $validated['academic_year_id'] ?? null;
 
+        $activeRequestsByAcademicYear = SupplementaryExamRequest::query()
+            ->where('student_id', $student->id)
+            ->whereIn('status', ['submitted', 'approved'])
+            ->selectRaw('academic_year_id, COUNT(*) AS total')
+            ->groupBy('academic_year_id')
+            ->pluck('total', 'academic_year_id');
+
+        $enrollments = StudentCourseEnrollment::with([
+                'course',
+                'grade',
+                'academicYear',
+                'studyYear',
+                'supplementaryExamRequests',
+            ])
+            ->where('student_id', $student->id)
+            ->when($academicYearId, function ($query) use ($academicYearId) {
+                $query->where('academic_year_id', $academicYearId);
+            })
+            ->whereHas('academicYear', function ($query) {
+                // Supplementary registration is available only for an open academic year.
+                // After closing, conditionally passed courses are treated as passed.
+                $query->where('is_closed', false);
+            })
+            ->get();
+
+        $eligibleEnrollments = $enrollments
+            ->filter(function ($enrollment) use ($activeRequestsByAcademicYear) {
                 if (!$enrollment->grade || $enrollment->grade->final_mark === null) {
                     return false;
                 }
 
-                if ((float) $enrollment->grade->final_mark >= 60) {
+                $status = strtolower((string) ($enrollment->grade->result_status ?? ''));
+
+                // Important academic rule:
+                // conditionally_passed courses are considered passed after year closing,
+                // so they must not be offered for supplementary exams in the next year.
+                if (in_array($status, ['passed', 'conditionally_passed', 'supplementary_approved'], true)) {
+                    return false;
+                }
+
+                $passMark = (float) ($enrollment->course?->pass_mark ?? 60);
+                $finalMark = (float) $enrollment->grade->final_mark;
+
+                // Rule: the student may request supplementary exam for any course
+                // whose final mark is below the pass mark. In this system pass mark is 60.
+                if ($finalMark >= $passMark) {
                     return false;
                 }
 
@@ -62,31 +91,49 @@ class SupplementaryExamController extends Controller
                     return false;
                 }
 
+                $activeRequestsCount = (int) ($activeRequestsByAcademicYear[$enrollment->academic_year_id] ?? 0);
+                if ($activeRequestsCount >= 4) {
+                    return false;
+                }
+
                 $hasExistingSupplementaryRequest = $enrollment->supplementaryExamRequests
-                    ->where('academic_year_id', (int) $validated['academic_year_id'])
+                    ->where('academic_year_id', (int) $enrollment->academic_year_id)
                     ->isNotEmpty();
 
                 return !$hasExistingSupplementaryRequest;
             })
             ->values()
-            ->map(function ($enrollment) {
+            ->map(function ($enrollment) use ($activeRequestsByAcademicYear) {
+                $passMark = (float) ($enrollment->course?->pass_mark ?? 60);
+                $activeRequestsCount = (int) ($activeRequestsByAcademicYear[$enrollment->academic_year_id] ?? 0);
+
                 return [
                     'enrollment_id' => $enrollment->id,
                     'course_id' => $enrollment->course_id,
                     'course_code' => $enrollment->course?->code,
                     'course_name' => $enrollment->course?->name,
                     'final_mark' => $enrollment->grade?->final_mark,
+                    'pass_mark' => $passMark,
+                    'result_status' => $enrollment->grade?->result_status,
                     'semester_number' => $enrollment->semester_number,
                     'study_year' => $enrollment->studyYear?->name,
+                    'study_year_id' => $enrollment->study_year_id,
                     'academic_year' => $enrollment->academicYear?->name,
+                    'academic_year_id' => $enrollment->academic_year_id,
+                    'is_academic_year_closed' => (bool) $enrollment->academicYear?->is_closed,
                     'is_carried' => $enrollment->is_carried,
                     'is_supplementary' => $enrollment->is_supplementary,
+                    'active_requests_count_for_year' => $activeRequestsCount,
+                    'remaining_requests_for_year' => max(0, 4 - $activeRequestsCount),
+                    'eligibility_reason' => 'Final mark is below the pass mark within the open academic year.',
                 ];
             });
 
         return response()->json([
             'student_id' => $student->id,
             'student_number' => $student->student_number,
+            'academic_year_id' => $academicYearId,
+            'max_requests_per_academic_year' => 4,
             'eligible_courses_count' => $eligibleEnrollments->count(),
             'eligible_courses' => $eligibleEnrollments,
         ]);
@@ -105,7 +152,6 @@ class SupplementaryExamController extends Controller
         ]);
 
         $student = Student::findOrFail($validated['student_id']);
-
         $currentUser = $request->user();
 
         if (!$currentUser || !$currentUser->student) {
@@ -120,7 +166,7 @@ class SupplementaryExamController extends Controller
             ], 403);
         }
 
-        $enrollment = StudentCourseEnrollment::with(['grade', 'course'])
+        $enrollment = StudentCourseEnrollment::with(['grade', 'course', 'academicYear'])
             ->findOrFail($validated['student_course_enrollment_id']);
 
         if ((int) $enrollment->student_id !== (int) $student->id) {
@@ -135,15 +181,32 @@ class SupplementaryExamController extends Controller
             ], 422);
         }
 
+        if ($enrollment->academicYear?->is_closed) {
+            return response()->json([
+                'message' => 'Supplementary requests cannot be submitted for a closed academic year.',
+            ], 422);
+        }
+
         if (!$enrollment->grade || $enrollment->grade->final_mark === null) {
             return response()->json([
                 'message' => 'This course does not have a final grade yet.',
             ], 422);
         }
 
-        if ((float) $enrollment->grade->final_mark >= 60) {
+        $status = strtolower((string) ($enrollment->grade->result_status ?? ''));
+
+        if (in_array($status, ['passed', 'conditionally_passed', 'supplementary_approved'], true)) {
             return response()->json([
-                'message' => 'Only courses with final mark less than 60 can be requested for supplementary exam.',
+                'message' => 'This course is considered passed and is not eligible for supplementary exam registration.',
+            ], 422);
+        }
+
+        $passMark = (float) ($enrollment->course?->pass_mark ?? 60);
+        $finalMark = (float) $enrollment->grade->final_mark;
+
+        if ($finalMark >= $passMark) {
+            return response()->json([
+                'message' => 'Only courses with final mark below the pass mark can be requested for supplementary exam.',
             ], 422);
         }
 
@@ -160,7 +223,7 @@ class SupplementaryExamController extends Controller
 
         if ($activeRequestsCount >= 4) {
             return response()->json([
-                'message' => 'A student cannot register for more than 4 supplementary courses.',
+                'message' => 'A student cannot register for more than 4 supplementary courses in the same academic year.',
             ], 422);
         }
 
@@ -308,7 +371,11 @@ class SupplementaryExamController extends Controller
                 'coursework_mark' => $originalGrade->coursework_mark,
                 'practical_mark' => $originalGrade->practical_mark,
                 'exam_mark' => null,
-                'final_mark' => ($originalGrade->coursework_mark ?? 0) + ($originalGrade->practical_mark ?? 0),
+                'final_mark' => StudentCourseGrade::calculateFinalMark(
+                    $originalGrade->coursework_mark,
+                    $originalGrade->practical_mark,
+                    null
+                ),
                 'result_status' => 'pending',
                 'is_locked' => false,
                 'last_updated_at' => null,

@@ -10,7 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Exception;
+use Throwable;
 
 class ExamManagementController extends Controller
 {
@@ -102,9 +102,9 @@ class ExamManagementController extends Controller
                 'message' => 'Academic year closed successfully and auto-promotion completed.',
                 'data' => $result,
             ]);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return response()->json([
-                'message' => 'Failed to close academic year.',
+                'message' => 'Failed to close academic year: ' . $e->getMessage(),
                 'error' => $e->getMessage(),
             ], 500);
         }

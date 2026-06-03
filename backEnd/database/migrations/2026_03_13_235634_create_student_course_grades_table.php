@@ -16,9 +16,9 @@ return new class extends Migration
                 ->constrained('student_course_enrollments')
                 ->cascadeOnDelete();
 
-            $table->decimal('coursework_mark', 5, 2)->nullable()->default(null); // 20
-            $table->decimal('practical_mark', 5, 2)->nullable()->default(null);  // 20
-            $table->decimal('exam_mark', 5, 2)->nullable()->default(null);       // 60
+            $table->decimal('coursework_mark', 5, 2)->nullable()->default(null); // raw mark out of 100; weighted as 20%
+            $table->decimal('practical_mark', 5, 2)->nullable()->default(null);  // raw mark out of 100; weighted as 20%
+            $table->decimal('exam_mark', 5, 2)->nullable()->default(null);       // raw mark out of 100; weighted as 60%
 
             $table->decimal('final_mark', 5, 2)->nullable()->default(null);
 

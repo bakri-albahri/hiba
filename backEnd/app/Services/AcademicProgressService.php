@@ -195,10 +195,11 @@ class AcademicProgressService
                 $enrollment->save();
             }
 
-            if ($enrollment->grade && $enrollment->grade->result_status !== 'archived') {
-                $enrollment->grade->result_status = 'archived';
-                $enrollment->grade->save();
-            }
+            // Do not write 'archived' into student_course_grades.result_status.
+            // The database enum for result_status does not contain 'archived', so trying
+            // to save it breaks the academic-year closing workflow when a course has
+            // multiple effective/non-effective enrollments, especially after supplementary exams.
+            // We archive the enrollment itself through student_course_enrollments.status only.
         }
     }
 

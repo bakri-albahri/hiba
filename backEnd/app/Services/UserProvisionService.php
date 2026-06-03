@@ -16,7 +16,8 @@ use InvalidArgumentException;
 class UserProvisionService
 {
     public function __construct(
-        protected StudentNumberService $studentNumberService
+        protected StudentNumberService $studentNumberService,
+        protected StudentAutoEnrollmentService $studentAutoEnrollmentService
     ) {
     }
 
@@ -42,8 +43,10 @@ class UserProvisionService
                 'type' => $type,
             ]);
 
+            $autoEnrollment = null;
+
             $entity = match ($type) {
-                'student' => $this->createStudent($user, $data),
+                'student' => $this->createStudent($user, $data, $autoEnrollment),
                 'employee' => $this->createEmployee($user, $data),
                 'doctor' => $this->createDoctor($user, $data),
                 default => throw new InvalidArgumentException('Unsupported user type.'),
@@ -53,11 +56,12 @@ class UserProvisionService
                 'user' => $user->fresh(),
                 'type' => $type,
                 'entity' => $entity,
+                'auto_enrollment' => $autoEnrollment,
             ];
         });
     }
 
-    private function createStudent(User $user, array $data): Student
+    private function createStudent(User $user, array $data, ?array &$autoEnrollment = null): Student
     {
         $program = Program::findOrFail($data['program_id']);
         $studyYear = StudyYear::findOrFail($data['study_year_id']);
@@ -99,7 +103,7 @@ class UserProvisionService
             'student_id' => $student->id,
             'academic_year_id' => $data['academic_year_id'],
             'study_year_id' => $data['study_year_id'],
-            'registration_status' => $data['registration_status'] ?? 'pending',
+            'registration_status' => $data['registration_status'] ?? 'registered',
             'academic_result' => 'in_progress',
             'annual_average' => null,
             'carried_courses_count' => 0,
@@ -110,12 +114,23 @@ class UserProvisionService
             'notes' => 'Initial academic record created from User Provision API.',
         ]);
 
+        $autoEnrollment = $this->studentAutoEnrollmentService->autoEnroll(
+            $student,
+            (int) $data['academic_year_id'],
+            (int) $data['study_year_id'],
+            'Auto-enrolled immediately after student account creation.'
+        );
+
         return $student->load([
             'user',
             'program',
             'specialization',
             'academicRecords.academicYear',
             'academicRecords.studyYear',
+            'courseEnrollments.course',
+            'courseEnrollments.academicYear',
+            'courseEnrollments.studyYear',
+            'courseEnrollments.grade',
         ]);
     }
 

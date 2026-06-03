@@ -12,11 +12,14 @@ use App\Http\Controllers\Api\StudyYearController;
 use App\Http\Controllers\Api\AcademicYearController;
 
 use App\Http\Controllers\Api\StudentController;
+use App\Http\Controllers\Api\StudentPortalController;
+use App\Http\Controllers\Api\StudentServiceRequestController;
 use App\Http\Controllers\Api\CourseController;
 use App\Http\Controllers\Api\StudyPlanController;
 use App\Http\Controllers\Api\EnrollmentController;
 use App\Http\Controllers\Api\GradeController;
 use App\Http\Controllers\Api\AttendanceController;
+use App\Http\Controllers\Api\CourseAttendanceRequirementController;
 use App\Http\Controllers\Api\GradeObjectionController;
 use App\Http\Controllers\Api\SupplementaryExamController;
 
@@ -29,6 +32,7 @@ use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\DoctorController;
 use App\Http\Controllers\Api\DoctorCourseAssignmentController;
+use App\Http\Controllers\Api\DoctorPortalController;
 
 use App\Http\Controllers\Api\FinanceController;
 use App\Http\Controllers\Api\NotificationController;
@@ -38,6 +42,10 @@ use App\Http\Controllers\Api\ReportController;
 
 use App\Http\Controllers\Api\AccountController;
 
+use App\Http\Controllers\Api\StudentFinanceStatusController;
+use App\Http\Controllers\Api\StudentExamScheduleController;
+
+
 /*
 |--------------------------------------------------------------------------
 | Public Routes
@@ -45,6 +53,7 @@ use App\Http\Controllers\Api\AccountController;
 */
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/document-verification/{verificationCode}', [StudentPortalController::class, 'verifyDocument']);
 
 /*
 |--------------------------------------------------------------------------
@@ -54,6 +63,14 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/account/change-my-password', [AccountController::class, 'changeMyPassword']);
+    Route::get('/student/finance-status', [StudentFinanceStatusController::class, 'show']);
+    Route::get('/student/payment-history', [StudentPortalController::class, 'paymentHistory']);
+    Route::get('/student/academic-calendar', [StudentPortalController::class, 'academicCalendar']);
+    Route::get('/student/graduation-eligibility', [StudentPortalController::class, 'graduationEligibility']);
+    Route::get('/student/course-materials', [StudentPortalController::class, 'courseMaterials']);
+    Route::get('/student/official-documents', [StudentPortalController::class, 'officialDocuments']);
+    Route::get('/student/exam-schedule', [StudentExamScheduleController::class, 'index']);
+    Route::get('/student/exam-card', [StudentExamScheduleController::class, 'examCard']);
     Route::get('/dashboard/financial-summary', [DashboardController::class, 'financialSummary'])
     ->middleware('permission:view dashboard');
     
@@ -65,6 +82,54 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Doctor Portal Self-Service
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/doctor-portal/profile', [DoctorPortalController::class, 'profile']);
+    Route::get('/doctor-portal/courses', [DoctorPortalController::class, 'courses']);
+    Route::get('/doctor-portal/grade-objections', [DoctorPortalController::class, 'gradeObjections']);
+    Route::get('/doctor-portal/attendance', [DoctorPortalController::class, 'attendance']);
+    Route::post('/doctor-portal/attendance/record', [DoctorPortalController::class, 'recordAttendance']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Student Portal Self-Service
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/student/profile', [StudentPortalController::class, 'profile']);
+    Route::get('/student/current-academic-record', [StudentPortalController::class, 'currentAcademicRecord']);
+    Route::get('/student/academic-summary', [StudentPortalController::class, 'academicSummary']);
+    Route::get('/student/grades', [StudentPortalController::class, 'grades']);
+    Route::get('/student/grade-objections', [StudentPortalController::class, 'gradeObjections']);
+    Route::get('/student/attendance', [StudentPortalController::class, 'attendance']);
+    Route::get('/student/carried-courses', [StudentPortalController::class, 'carriedCourses']);
+    Route::get('/student/class-schedule', [StudentPortalController::class, 'classSchedule']);
+    Route::get('/student/service-requests', [StudentServiceRequestController::class, 'myRequests']);
+    Route::get('/student/service-requests/{requestId}', [StudentServiceRequestController::class, 'showMine']);
+    Route::post('/student/service-requests', [StudentServiceRequestController::class, 'submit']);
+    Route::patch('/student/service-requests/{requestId}/cancel', [StudentServiceRequestController::class, 'cancel']);
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Student Service Requests
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/student-service-requests', [StudentServiceRequestController::class, 'index'])
+        ->middleware('permission:view undergraduate students|view postgraduate students');
+
+    Route::get('/student-service-requests/{requestId}', [StudentServiceRequestController::class, 'show'])
+        ->middleware('permission:view undergraduate students|view postgraduate students');
+
+    Route::patch('/student-service-requests/{requestId}/status', [StudentServiceRequestController::class, 'updateStatus'])
+        ->middleware('permission:update undergraduate students|update postgraduate students');
 
     /*
     |--------------------------------------------------------------------------
@@ -103,9 +168,9 @@ Route::middleware('auth:sanctum')->group(function () {
     */
 
     Route::get('/programs', [ProgramController::class, 'index'])
-        ->middleware('permission:manage academic structure');
+        ->middleware('permission:manage academic structure|view undergraduate students|create undergraduate students|update undergraduate students|change undergraduate student status|manage undergraduate schedules|set course attendance limits|send student notifications|manage student grades|manage exam schedules|manage supplementary exam schedules|close academic year|set annual tuition fees|update tuition payment status|view postgraduate students|create postgraduate students|update postgraduate students|manage postgraduate schedules');
     Route::get('/programs/{programId}', [ProgramController::class, 'show'])
-        ->middleware('permission:manage academic structure');
+        ->middleware('permission:manage academic structure|view undergraduate students|create undergraduate students|update undergraduate students|change undergraduate student status|manage undergraduate schedules|set course attendance limits|send student notifications|manage student grades|manage exam schedules|manage supplementary exam schedules|close academic year|set annual tuition fees|update tuition payment status|view postgraduate students|create postgraduate students|update postgraduate students|manage postgraduate schedules');
     Route::post('/programs', [ProgramController::class, 'store'])
         ->middleware('permission:manage academic structure');
     Route::put('/programs/{programId}', [ProgramController::class, 'update'])
@@ -114,9 +179,9 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:manage academic structure');
 
     Route::get('/specializations', [SpecializationController::class, 'index'])
-        ->middleware('permission:manage academic structure');
+        ->middleware('permission:manage academic structure|view undergraduate students|create undergraduate students|update undergraduate students|change undergraduate student status|manage undergraduate schedules|set course attendance limits|send student notifications|manage student grades|manage exam schedules|manage supplementary exam schedules|close academic year|set annual tuition fees|update tuition payment status|view postgraduate students|create postgraduate students|update postgraduate students|manage postgraduate schedules');
     Route::get('/specializations/{specializationId}', [SpecializationController::class, 'show'])
-        ->middleware('permission:manage academic structure');
+        ->middleware('permission:manage academic structure|view undergraduate students|create undergraduate students|update undergraduate students|change undergraduate student status|manage undergraduate schedules|set course attendance limits|send student notifications|manage student grades|manage exam schedules|manage supplementary exam schedules|close academic year|set annual tuition fees|update tuition payment status|view postgraduate students|create postgraduate students|update postgraduate students|manage postgraduate schedules');
     Route::post('/specializations', [SpecializationController::class, 'store'])
         ->middleware('permission:manage academic structure');
     Route::put('/specializations/{specializationId}', [SpecializationController::class, 'update'])
@@ -125,9 +190,9 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:manage academic structure');
 
     Route::get('/study-years', [StudyYearController::class, 'index'])
-        ->middleware('permission:manage academic structure');
+        ->middleware('permission:manage academic structure|view undergraduate students|create undergraduate students|update undergraduate students|change undergraduate student status|manage undergraduate schedules|set course attendance limits|send student notifications|manage student grades|manage exam schedules|manage supplementary exam schedules|close academic year|set annual tuition fees|update tuition payment status|view postgraduate students|create postgraduate students|update postgraduate students|manage postgraduate schedules');
     Route::get('/study-years/{studyYearId}', [StudyYearController::class, 'show'])
-        ->middleware('permission:manage academic structure');
+        ->middleware('permission:manage academic structure|view undergraduate students|create undergraduate students|update undergraduate students|change undergraduate student status|manage undergraduate schedules|set course attendance limits|send student notifications|manage student grades|manage exam schedules|manage supplementary exam schedules|close academic year|set annual tuition fees|update tuition payment status|view postgraduate students|create postgraduate students|update postgraduate students|manage postgraduate schedules');
     Route::post('/study-years', [StudyYearController::class, 'store'])
         ->middleware('permission:manage academic structure');
     Route::put('/study-years/{studyYearId}', [StudyYearController::class, 'update'])
@@ -136,9 +201,9 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:manage academic structure');
 
     Route::get('/academic-years', [AcademicYearController::class, 'index'])
-        ->middleware('permission:manage academic structure');
+        ->middleware('permission:manage academic structure|view undergraduate students|create undergraduate students|update undergraduate students|change undergraduate student status|manage undergraduate schedules|set course attendance limits|send student notifications|manage student grades|manage exam schedules|manage supplementary exam schedules|close academic year|set annual tuition fees|update tuition payment status|view postgraduate students|create postgraduate students|update postgraduate students|manage postgraduate schedules');
     Route::get('/academic-years/{academicYearId}', [AcademicYearController::class, 'show'])
-        ->middleware('permission:manage academic structure');
+        ->middleware('permission:manage academic structure|view undergraduate students|create undergraduate students|update undergraduate students|change undergraduate student status|manage undergraduate schedules|set course attendance limits|send student notifications|manage student grades|manage exam schedules|manage supplementary exam schedules|close academic year|set annual tuition fees|update tuition payment status|view postgraduate students|create postgraduate students|update postgraduate students|manage postgraduate schedules');
     Route::post('/academic-years', [AcademicYearController::class, 'store'])
         ->middleware('permission:manage academic structure');
     Route::put('/academic-years/{academicYearId}', [AcademicYearController::class, 'update'])
@@ -185,10 +250,10 @@ Route::middleware('auth:sanctum')->group(function () {
     */
 
     Route::get('/courses', [CourseController::class, 'index'])
-        ->middleware('permission:manage departments|manage exam schedules|manage supplementary exam schedules');
+        ->middleware('permission:manage departments|manage exam schedules|manage supplementary exam schedules|manage undergraduate schedules|set course attendance limits|view undergraduate students|create undergraduate students|update undergraduate students|view postgraduate students|create postgraduate students|update postgraduate students|manage postgraduate schedules');
 
     Route::get('/courses/{courseId}', [CourseController::class, 'show'])
-        ->middleware('permission:manage departments|manage exam schedules|manage supplementary exam schedules');
+        ->middleware('permission:manage departments|manage exam schedules|manage supplementary exam schedules|manage undergraduate schedules|set course attendance limits|view undergraduate students|create undergraduate students|update undergraduate students|view postgraduate students|create postgraduate students|update postgraduate students|manage postgraduate schedules');
 
     Route::post('/courses', [CourseController::class, 'store'])
         ->middleware('permission:manage departments');
@@ -265,6 +330,21 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/students/{studentId}/attendance', [AttendanceController::class, 'listByStudent'])
         ->middleware('permission:view undergraduate students|view postgraduate students');
+
+    Route::get('/course-attendance-requirements', [CourseAttendanceRequirementController::class, 'index'])
+        ->middleware('permission:set course attendance limits|manage undergraduate schedules|manage postgraduate schedules');
+
+    Route::post('/course-attendance-requirements', [CourseAttendanceRequirementController::class, 'store'])
+        ->middleware('permission:set course attendance limits|manage undergraduate schedules|manage postgraduate schedules');
+
+    Route::get('/course-attendance-requirements/{requirementId}', [CourseAttendanceRequirementController::class, 'show'])
+        ->middleware('permission:set course attendance limits|manage undergraduate schedules|manage postgraduate schedules');
+
+    Route::put('/course-attendance-requirements/{requirementId}', [CourseAttendanceRequirementController::class, 'update'])
+        ->middleware('permission:set course attendance limits|manage undergraduate schedules|manage postgraduate schedules');
+
+    Route::delete('/course-attendance-requirements/{requirementId}', [CourseAttendanceRequirementController::class, 'destroy'])
+        ->middleware('permission:set course attendance limits|manage undergraduate schedules|manage postgraduate schedules');
 
        /*
     |--------------------------------------------------------------------------

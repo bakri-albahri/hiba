@@ -56,7 +56,7 @@ class FinanceController extends Controller
                 'study_year_id' => $validated['study_year_id'],
             ],
             [
-                'amount' => $validated['amount'],
+                'amount' => $this->normalizeMoneyAmount($validated['amount']),
                 'is_active' => $validated['is_active'] ?? true,
                 'notes' => $validated['notes'] ?? null,
             ]
@@ -262,5 +262,27 @@ class FinanceController extends Controller
         })->values();
 
         return response()->json($result);
+    }
+    private function normalizeMoneyAmount($amount): string
+    {
+        $value = trim((string) $amount);
+        $value = str_replace([',', ' '], '', $value);
+
+        if (!preg_match('/^\d+(\.\d{1,2})?$/', $value)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'amount' => ['The amount must be a valid money value with up to 2 decimal places.'],
+            ]);
+        }
+
+        [$integerPart, $decimalPart] = array_pad(explode('.', $value, 2), 2, '00');
+
+        $integerPart = ltrim($integerPart, '0');
+        if ($integerPart === '') {
+            $integerPart = '0';
+        }
+
+        $decimalPart = substr(str_pad($decimalPart, 2, '0'), 0, 2);
+
+        return $integerPart . '.' . $decimalPart;
     }
 }

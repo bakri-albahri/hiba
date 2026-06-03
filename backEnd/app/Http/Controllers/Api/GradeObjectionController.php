@@ -333,9 +333,9 @@ class GradeObjectionController extends Controller
 
         $validated = $request->validate([
             'doctor_response' => ['required', 'string'],
-            'doctor_suggested_coursework_mark' => ['nullable', 'numeric', 'min:0', 'max:20'],
-            'doctor_suggested_practical_mark' => ['nullable', 'numeric', 'min:0', 'max:20'],
-            'doctor_suggested_exam_mark' => ['nullable', 'numeric', 'min:0', 'max:60'],
+            'doctor_suggested_coursework_mark' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'doctor_suggested_practical_mark' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'doctor_suggested_exam_mark' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
 
         $oldValues = [
@@ -416,9 +416,9 @@ class GradeObjectionController extends Controller
         $validated = $request->validate([
             'final_decision' => ['required', 'in:approved,rejected'],
             'final_exam_decision_note' => ['nullable', 'string'],
-            'coursework_mark' => ['nullable', 'numeric', 'min:0', 'max:20'],
-            'practical_mark' => ['nullable', 'numeric', 'min:0', 'max:20'],
-            'exam_mark' => ['nullable', 'numeric', 'min:0', 'max:60'],
+            'coursework_mark' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'practical_mark' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'exam_mark' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
 
         $oldValues = [

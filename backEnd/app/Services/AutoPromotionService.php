@@ -6,7 +6,6 @@ use App\Models\AcademicYear;
 use App\Models\Student;
 use App\Models\StudentAcademicRecord;
 use App\Models\StudentCourseEnrollment;
-use App\Models\StudentCourseGrade;
 use App\Models\StudyPlan;
 use App\Models\StudyYear;
 use Illuminate\Support\Collection;
@@ -132,7 +131,7 @@ class AutoPromotionService
                         $student,
                         'academic_year_result',
                         'Academic Year Failed',
-                        'You did not meet the requirements to progress and will repeat the same study year.',
+                        'You did not meet the requirements to progress and will repeat only the failed courses in the same study year.',
                         [
                             'academic_year_id' => $currentAcademicYear->id,
                             'next_academic_year_id' => $nextAcademicYear->id,
@@ -246,7 +245,7 @@ class AutoPromotionService
                 'tuition_paid' => false,
                 'auto_promoted' => false,
                 'consecutive_failures_in_same_year' => $currentRecord->consecutive_failures_in_same_year,
-                'notes' => 'Created automatically for repeating the same study year.',
+                'notes' => 'Created automatically for repeating failed courses only in the same study year.',
             ]
         );
 
@@ -328,7 +327,11 @@ class AutoPromotionService
                 continue;
             }
 
-            if ((float) $grade->final_mark < 60) {
+            $status = strtolower((string) ($grade->result_status ?? ''));
+
+            // Repeating failed students repeat ONLY courses that truly failed.
+            // conditionally_passed courses are treated as passed and are not repeated.
+            if ((float) $grade->final_mark < 60 && !in_array($status, ['passed', 'conditionally_passed', 'supplementary_approved'], true)) {
                 $this->createOrResetRetakeEnrollment(
                     $student,
                     $enrollment->course_id,
@@ -336,7 +339,7 @@ class AutoPromotionService
                     $studyYearId,
                     (int) $enrollment->semester_number,
                     false,
-                    'Automatically enrolled because the student is repeating the year.'
+                    'Automatically enrolled because the student is repeating only failed courses.'
                 );
             }
         }
@@ -367,20 +370,18 @@ class AutoPromotionService
             ]
         );
 
-        StudentCourseGrade::updateOrCreate(
-            [
-                'student_course_enrollment_id' => $enrollment->id,
-            ],
-            [
-                'coursework_mark' => 0,
-                'practical_mark' => 0,
-                'exam_mark' => 0,
-                'final_mark' => 0,
-                'result_status' => 'pending',
-                'is_locked' => false,
-                'last_updated_at' => null,
-            ]
-        );
+        // Do NOT create zero-grade rows for the new academic year.
+        // The grade must remain empty until the examinations department enters it.
+        // If a fake pending grade with zero values already exists for this new retake enrollment,
+        // remove it so averages and student portal do not display 0.00 as a real mark.
+        if (
+            $enrollment->grade
+            && $enrollment->grade->last_updated_at === null
+            && $enrollment->grade->result_status === 'pending'
+            && (float) ($enrollment->grade->final_mark ?? 0) === 0.0
+        ) {
+            $enrollment->grade->delete();
+        }
     }
 
     private function resolveEffectiveEnrollmentsPerCourse(Collection $enrollments): Collection

@@ -46,6 +46,11 @@ class Course extends Model
         return $this->hasMany(DoctorCourseAssignment::class);
     }
 
+    public function materials()
+    {
+        return $this->hasMany(CourseMaterial::class);
+    }
+
     public function enrollments()
     {
         return $this->hasMany(StudentCourseEnrollment::class);

@@ -26,9 +26,16 @@ class GradeController extends Controller
 
         return response()->json([
             'student' => $student,
-            'grades' => $student->courseEnrollments->map(function ($enrollment) {
-                return $this->formatEnrollmentGradeRow($enrollment);
-            })->values(),
+            'grades' => $student->courseEnrollments
+                ->sortBy([
+                    ['academic_year_id', 'asc'],
+                    ['study_year_id', 'asc'],
+                    ['semester_number', 'asc'],
+                    ['course_id', 'asc'],
+                ])
+                ->map(function ($enrollment) {
+                    return $this->formatEnrollmentGradeRow($enrollment);
+                })->values(),
         ]);
     }
 
@@ -105,8 +112,10 @@ class GradeController extends Controller
                     'student_number' => $enrollment->student?->student_number,
                     'student_name' => $enrollment->student?->user?->full_name,
                     'study_year_id' => $enrollment->study_year_id,
+                    'study_year_number' => $enrollment->studyYear?->year_number,
                     'study_year_name' => $enrollment->studyYear?->name,
                     'semester_number' => $enrollment->semester_number,
+                    'semester_label' => $this->formatSemesterLabel($enrollment->semester_number),
                     'is_carried' => $enrollment->is_carried,
                     'is_supplementary' => $enrollment->is_supplementary,
                     'enrollment_status' => $enrollment->status,
@@ -153,8 +162,10 @@ class GradeController extends Controller
                     'student_number' => $enrollment->student?->student_number,
                     'student_name' => $enrollment->student?->user?->full_name,
                     'study_year_id' => $enrollment->study_year_id,
+                    'study_year_number' => $enrollment->studyYear?->year_number,
                     'study_year_name' => $enrollment->studyYear?->name,
                     'semester_number' => $enrollment->semester_number,
+                    'semester_label' => $this->formatSemesterLabel($enrollment->semester_number),
                     'is_carried' => $enrollment->is_carried,
                     'is_supplementary' => $enrollment->is_supplementary,
                     'current_grade' => $this->formatGradePayload($enrollment->grade),
@@ -171,9 +182,9 @@ class GradeController extends Controller
         $validated = $request->validate([
             'grades' => ['required', 'array', 'min:1'],
             'grades.*.enrollment_id' => ['required', 'integer', 'exists:student_course_enrollments,id'],
-            'grades.*.coursework_mark' => ['nullable', 'numeric', 'min:0', 'max:20'],
-            'grades.*.practical_mark' => ['nullable', 'numeric', 'min:0', 'max:20'],
-            'grades.*.exam_mark' => ['nullable', 'numeric', 'min:0', 'max:60'],
+            'grades.*.coursework_mark' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'grades.*.practical_mark' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'grades.*.exam_mark' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'grades.*.is_locked' => ['nullable', 'boolean'],
         ]);
 
@@ -267,9 +278,9 @@ class GradeController extends Controller
             ->findOrFail($enrollmentId);
 
         $validated = $request->validate([
-            'coursework_mark' => ['nullable', 'numeric', 'min:0', 'max:20'],
-            'practical_mark' => ['nullable', 'numeric', 'min:0', 'max:20'],
-            'exam_mark' => ['nullable', 'numeric', 'min:0', 'max:60'],
+            'coursework_mark' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'practical_mark' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'exam_mark' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'is_locked' => ['nullable', 'boolean'],
         ]);
 
@@ -318,9 +329,9 @@ class GradeController extends Controller
             'course_id' => ['nullable', 'integer', 'exists:courses,id'],
             'course_code' => ['nullable', 'string', 'max:255'],
             'course_name' => ['nullable', 'string', 'max:255'],
-            'coursework_mark' => ['nullable', 'numeric', 'min:0', 'max:20'],
-            'practical_mark' => ['nullable', 'numeric', 'min:0', 'max:20'],
-            'exam_mark' => ['nullable', 'numeric', 'min:0', 'max:60'],
+            'coursework_mark' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'practical_mark' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'exam_mark' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'is_locked' => ['nullable', 'boolean'],
         ]);
 
@@ -408,6 +419,12 @@ class GradeController extends Controller
                 'course_name' => $course->name,
                 'course_code' => $course->code,
                 'academic_year_id' => $enrollment->academic_year_id,
+                'academic_year_name' => $enrollment->academicYear?->name,
+                'study_year_id' => $enrollment->study_year_id,
+                'study_year_number' => $enrollment->studyYear?->year_number,
+                'study_year_name' => $enrollment->studyYear?->name,
+                'semester_number' => $enrollment->semester_number,
+                'semester_label' => $this->formatSemesterLabel($enrollment->semester_number),
                 'is_supplementary' => $enrollment->is_supplementary,
                 'grade' => $this->formatGradePayload($grade->fresh()),
             ],
@@ -458,16 +475,47 @@ class GradeController extends Controller
             'course_id' => $enrollment->course_id,
             'course_name' => $enrollment->course?->name,
             'course_code' => $enrollment->course?->code,
+            'course_credit_hours' => $enrollment->course?->credit_hours,
             'academic_year_id' => $enrollment->academic_year_id,
             'academic_year' => $enrollment->academicYear?->name,
+            'academic_year_name' => $enrollment->academicYear?->name,
             'study_year_id' => $enrollment->study_year_id,
             'study_year' => $enrollment->studyYear?->name,
+            'study_year_name' => $enrollment->studyYear?->name,
+            'study_year_number' => $enrollment->studyYear?->year_number,
             'semester_number' => $enrollment->semester_number,
+            'semester_label' => $this->formatSemesterLabel($enrollment->semester_number),
             'is_carried' => $enrollment->is_carried,
             'is_supplementary' => $enrollment->is_supplementary,
             'enrollment_status' => $enrollment->status,
+            'course' => [
+                'id' => $enrollment->course?->id,
+                'name' => $enrollment->course?->name,
+                'code' => $enrollment->course?->code,
+                'credit_hours' => $enrollment->course?->credit_hours,
+                'max_mark' => $enrollment->course?->max_mark,
+                'pass_mark' => $enrollment->course?->pass_mark,
+            ],
+            'academic_year_meta' => [
+                'id' => $enrollment->academicYear?->id,
+                'name' => $enrollment->academicYear?->name,
+            ],
+            'study_year_meta' => [
+                'id' => $enrollment->studyYear?->id,
+                'number' => $enrollment->studyYear?->year_number,
+                'name' => $enrollment->studyYear?->name,
+            ],
             'grade' => $this->formatGradePayload($enrollment->grade),
         ];
+    }
+
+    private function formatSemesterLabel(?int $semesterNumber): ?string
+    {
+        if (!$semesterNumber) {
+            return null;
+        }
+
+        return 'Semester ' . $semesterNumber;
     }
 
     private function formatGradePayload(?StudentCourseGrade $grade): array
@@ -478,6 +526,11 @@ class GradeController extends Controller
             'practical_mark' => $grade?->practical_mark ?? 0,
             'exam_mark' => $grade?->exam_mark ?? 0,
             'final_mark' => $grade?->final_mark ?? 0,
+            'weights' => [
+                'coursework' => StudentCourseGrade::COURSEWORK_WEIGHT,
+                'practical' => StudentCourseGrade::PRACTICAL_WEIGHT,
+                'exam' => StudentCourseGrade::EXAM_WEIGHT,
+            ],
             'result_status' => $grade?->result_status ?? 'pending',
             'is_locked' => $grade?->is_locked ?? false,
             'last_updated_at' => $grade?->last_updated_at,
