@@ -8,28 +8,36 @@ import "flatpickr/dist/themes/airbnb.css";
 
 
 import api from "../../Api/axios";
+import Input from "../../Components/input/Input";
+import Inputs from "../../Components/input/Input";
+import Select from "../../Components/input/Select";
+import IsActive from "../../Components/input/IsActive";
 export default function Update(props) {
 
+    const id = useParams().id;
+    const [name, setName] = useState("")
 
     // Main 
     const [accept, setAccept] = useState(false);
     const [open, setOpen] = useState(false);
     const [doneAdd, setDoneAdd] = useState(false)
-    const id = useParams().id;
     const [items, setItems] = useState([])
     const [isActive, setIsActive] = useState('');
-    const [name, setName] = useState("")
     const [desc, setDesc] = useState("")
     const [code, setCode] = useState('');
     const [selectedValue, setSelectedValue] = useState("");
-
+    const [courses, setCourses] = useState([])
+    const [selectedCourse, setSelectedCourse] = useState()
+    const [acdYears, setAcdYears] = useState([])
+    const [currentAcdYear, setCurrentAcdYear] = useState("")
+    const [doctors, setDoctors] = useState()
+    const [isPrimary, setIsPrimary] = useState("")
     // UseEffects State 
     const [programSpecs, setProgramSpecs] = useState([])
+    // console.log(programSpecs)
     const [programs, setPrograms] = useState([])
-    const [acdYears, setAcdYears] = useState([])
     const [studyYears, setStudyYears] = useState([])
     const [departments, setDepartments] = useState([])
-
     // current State
     const [currentProgram, setCurrentProgram] = useState("")
 
@@ -53,7 +61,7 @@ export default function Update(props) {
 
     // User Type Student State
     const [currentSpec, setCurrentSpec] = useState("")
-    const [currentAcdYear, setCurrentAcdYear] = useState("")
+
     const [currentStudyYear, setCurrentStudyYear] = useState("")
 
 
@@ -69,29 +77,22 @@ export default function Update(props) {
 
     // Add Course State
     const [creditHours, setCreditHours] = useState("")
-
     const [semsterNum, setSemsterNum] = useState("")
 
 
     /// Program State
-    const [level , setLevel] = useState("")
-    const [years , setYears] = useState("")
+    const [level, setLevel] = useState("")
+    const [years, setYears] = useState("")
 
     let dataToAdd = {}
 
 
     // Get Programs 
     useEffect(() => {
-        if (type === "student" || props.page === "updateStudyPlan") {
+        if (type === "student" || props.page === "updateStudyPlan" || props.page === "updateSchedule") {
             let fetchData = async () => {
                 let res = await api.get('programs')
                 setPrograms(res.data.data)
-                // let getPrograms = await api.get(`programs/${currentProgram}`)
-                // setProgramSpecs(getPrograms.data.specializations)
-                // let getAcademicYears = await api.get(`academic-years`)
-                // setAcdYears(getAcademicYears.data.data)
-                // let getStudyYears = await api.get(`study-years`)
-                // setStudyYears(getStudyYears.data.data)
             }
             fetchData()
         }
@@ -103,6 +104,7 @@ export default function Update(props) {
             }
             fetchData()
         }
+
     }, [type])
 
     // Get Current Selected Program Specializations
@@ -174,24 +176,36 @@ export default function Update(props) {
                 setCurrentSpec(res.data.specialization_id && res.data.specialization_id)
                 setSemsterNum(res.data.semester_number)
                 setIsActive(res.data.is_active)
-            } else if (props.page === "updateProgram"){
+            } else if (props.page === "updateProgram") {
                 setName(res.data.name)
                 setYears(res.data.total_years)
                 setLevel(res.data.level)
-            } else if (props.page === "updateSpec"){
-                console.log(res.data)
+            } else if (props.page === "updateSpec") {
+                // console.log(res.data)
                 setName(res.data.name)
                 setSelectedValue(res.data.program.id)
+            } else if (props.page === "updateAssignment") {
+                setSelectedValue(res.data.doctor_id)
+                setSelectedCourse(res.data.course_id)
+                setCurrentAcdYear(res.data.academic_year_id)
+                setSemsterNum(res.data.semester_number)
+                setIsPrimary(res.data.is_primary)
+            } else if (props.page === "updateSchedule") {
+                setName(res.data.name)
+                setCurrentProgram(res.data.program_id)
+                setCurrentStudyYear(res.data.study_year_id)
+                setCurrentSpec(res.data.specialization_id)
+                setSemsterNum(res.data.semester_number)
+                setIsActive(res.data.is_active)
             }
-
+            // console.log(res.data)
         }
         getData()
 
 
-
     }, [doneAdd])
 
-
+    // console.log(programs)
     async function submit(e) {
         let flag = true;
         e.preventDefault();
@@ -268,26 +282,51 @@ export default function Update(props) {
                     is_active: isActive,
                 }
             }
-        }else if(props.page === "updateProgram"){
-            if(!name || !years || !level || years === 0){
+        } else if (props.page === "updateProgram") {
+            if (!name || !years || !level || years === 0) {
                 flag = false
-            }else if (flag){
+            } else if (flag) {
                 dataToAdd = {
                     name: name,
                     total_years: years,
                     level: level
                 }
             }
-        }else if(props.page === "updateSpec"){
-            if(!name || !selectedValue){
+        } else if (props.page === "updateSpec") {
+            if (!name || !selectedValue) {
                 flag = false
-            } else if (flag){
+            } else if (flag) {
                 dataToAdd = {
-                    name: name ,
+                    name: name,
                     program_id: selectedValue
                 }
             }
-        } else flag = true;
+        } else if (props.page === "updateAssignment") {
+            if (!selectedValue || !selectedCourse || !currentAcdYear || !semsterNum || isPrimary === "") {
+                flag = false
+            } else {
+                dataToAdd = {
+                    "doctor_id": selectedValue,
+                    "course_id": selectedCourse,
+                    "academic_year_id": currentAcdYear,
+                    "semester_number": semsterNum,
+                    "is_primary": isPrimary
+                }
+            }
+        } else if (props.page === "updateSchedule"){
+            if(!name || !currentProgram ||!currentStudyYear || !semsterNum || isActive === null){
+                flag = false
+            } else {
+                dataToAdd = {
+                    "program_id": currentProgram,
+                    "study_year_id": currentStudyYear,
+                    "specialization_id": currentSpec,
+                    "semester_number": semsterNum,
+                    "name": name,
+                    "is_active": isActive
+                }
+            }
+        }else flag = true;
 
 
 
@@ -315,10 +354,25 @@ export default function Update(props) {
                 ]
             })
             res.status === 200 && setDoneAdd((prev) => !prev)
-            console.log(res.status)
+            // console.log(res.status)
         } catch (err) {
             console.log(err.response)
         }
+    }
+
+    async function autoEnroll(userID) {
+        try{
+             let res = await api.post(`/students/1/auto-enroll`, {
+
+            "academic_year_id": 1,
+            "study_year_id": 1
+
+
+        })
+        }catch(err){
+            console.log(err.response)
+        }
+        // console.log(res)
     }
 
     return (
@@ -519,6 +573,7 @@ export default function Update(props) {
                                             </div>
                                         </>
                                     }
+                                    <span onClick={() => autoEnroll(id)}>اسناد مقررات</span>
                                 </>
                             }
 
@@ -837,7 +892,7 @@ export default function Update(props) {
                                     onChange={(e) => setLevel(e.target.value)}
                                     className="select-items"
                                     value={level}
-                                    >
+                                >
                                     <option value=""> Select Level </option>
                                     <option value="bachelor"> Bachelor </option>
                                     <option value="master"> Master </option>
@@ -880,6 +935,86 @@ export default function Update(props) {
                     }
 
 
+                    {
+                        props.page === "updateAssignment" &&
+                        <>
+
+                            <div className="input">
+                                <label htmlFor="doctor">Doctor : </label>
+                                <select
+                                    id="doctor"
+                                    value={selectedValue}
+                                    onChange={(e) => setSelectedValue(e.target.value)}
+                                    className="select-items"
+                                >
+                                    <option value="">Select Doctor</option>
+                                    {props.doctors.map((doc, index) => (
+                                        <option value={doc.id} key={index}>{doc.user.full_name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <Select title="Course" value={selectedCourse} setValue={setSelectedCourse} items={props.courses}/>     
+            
+
+                            <div className="input">
+                                <label htmlFor="acd-year">Academic year : </label>
+                                <select
+                                    id="acd-year"
+                                    value={currentAcdYear}
+                                    onChange={(e) => setCurrentAcdYear(e.target.value)}
+                                    className="select-items"
+                                >
+                                    <option value="">Select Academic Year</option>
+                                    {props.acdYears.map((year, index) => (
+                                        <option value={year.id} key={index}>{year.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="input">
+                                <label htmlFor="course">Semster : </label>
+                                <select
+                                    id="course"
+                                    value={semsterNum}
+                                    onChange={(e) => setSemsterNum(e.target.value)}
+                                    className="select-items"
+                                >
+                                    <option value="">Select Semster</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                </select>
+                            </div>
+
+                            <div className="input">
+                                <label htmlFor="course">Is Primary : </label>
+                                <select
+                                    id="course"
+                                    value={isPrimary === true ? "1" : isPrimary === false ? "0" : ""}
+                                    onChange={(e) => setIsPrimary(e.target.value)}
+                                    className="select-items"
+                                >
+                                    <option value="">Select Option</option>
+                                    <option value="1">True</option>
+                                    <option value="0">False</option>
+                                </select>
+                            </div>
+                        </>
+                    }
+
+                    {
+                        props.page === "updateSchedule" && 
+                        <>
+                        <Inputs title="name" type="text" value={name} setValue={setName} />
+                        <Select title="Program" value={currentProgram} setValue={setCurrentProgram} items={programs}/>     
+                        <Select title="StudyYear" value={currentStudyYear} setValue={setCurrentStudyYear} items={studyYears}/>     
+                        <Select title="Specialization" value={currentSpec} setValue={setCurrentSpec} items={programSpecs}/>     
+                        <Select title="Semster" value={semsterNum} setValue={setSemsterNum} items={programSpecs}/>     
+                        <IsActive isActive={isActive} setIsActive={setIsActive}/>
+
+                        </>
+
+                    }
 
                     <div className="btn">
                         <button type="submit" className="button">Update {props.pTitle}</button>

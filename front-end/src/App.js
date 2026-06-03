@@ -27,14 +27,38 @@ import AddStudyPan from './Auth/DashBoard/StudyPlans/AddStudyPlan';
 import UpdateStuduPlan from './Auth/DashBoard/StudyPlans/UpdateStudyPlan';
 import Grades from './Auth/DashBoard/Grades/Grades';
 import AcademicYears from './Auth/DashBoard/AcademicYears/AcademicYears';
+import ShowAssignments from './Auth/DashBoard/DoctorCourseAssignments/ShowAssignments';
+import AddAssignments from './Auth/DashBoard/DoctorCourseAssignments/AddAssignments';
+import UpdateAssignment from './Auth/DashBoard/DoctorCourseAssignments/UpdateAssignmetn';
+import ClassSchedule from './Auth/DashBoard/ClassSchedule/ClassSchedule';
+import AddSchedule from './Auth/DashBoard/ClassSchedule/AddSchedule';
+import UpdateSchedule from './Auth/DashBoard/ClassSchedule/UpdateSchedule';
+import AddGrade from './Auth/DashBoard/Grades/AddGrade';
+import DocProfile from './Auth/Doctor/DocProfile';
+import StProfile from './Auth/StudentAcc/StProfile';
+import HigherStudiesDept from './Auth/HigherStudiesDept/HigherStudiesDept';
+import ExaminationsDepts from './Auth/ExaminationsDepts/ExaminationsDepts';
+import StuAffairsDep from './Auth/StuAffairsDep/StuAffairsDep';
+import Reports from './Auth/DashBoard/Reports/Reports';
+import ActivityLogs from './Auth/DashBoard/ActivityLogs/ActivityLogs';
+import EmployeePermissions from './Auth/DashBoard/EmployeePermissions/EmployeePermissions';
+import FinanceDept from './Auth/FinanceDept/FinanceDept';
+import DocumentVerification from './Auth/StudentAcc/DocumentVerification';
 
 function App() {
   return (
     <div className="App">
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path='login' element={<Login />}/>
+        <Route path='verify-document/:code' element={<DocumentVerification />} />
         <Route path="/auth">
-          <Route path='login' element={<Login />}/>
+          <Route path='doctor/profile' element={<DocProfile />} />
+          <Route path='student/profile' element={<StProfile />} />
+          <Route path='higherstudiesdept' element={<HigherStudiesDept />} />
+          <Route path='examinations-dept' element={<ExaminationsDepts />} />
+          <Route path='student-affairs' element={<StuAffairsDep />} />
+          <Route path="finance-dept" element={<FinanceDept />} />
           <Route path='dashboard'  element={<DashBoard />}>
             
             <Route path='users' element={<Users />} />
@@ -69,9 +93,27 @@ function App() {
             <Route path='study-plans/:id' element={<UpdateStuduPlan/>} />
 
             <Route path='grades' element={<Grades />}/>
+            <Route path='grades/add' element={<AddGrade />}/>
 
             <Route path='academic-years' element={<AcademicYears />}/>
+
+
+            <Route path='doctor-course-assignments' element={<ShowAssignments />}/>
+            <Route path='doctor-course-assignments/add' element={<AddAssignments />}/>
+            <Route path='doctor-course-assignments/:id' element={<UpdateAssignment />}/>
+
+
+            <Route path='class-schedules' element={<ClassSchedule />}/>
+            <Route path='class-schedules/add' element={<AddSchedule />}/>
+            <Route path='class-schedules/:id' element={<UpdateSchedule />}/>
+
+            <Route path='reports' element={<Reports />}/>
           
+
+            <Route path='activity-logs' element={<ActivityLogs />}/>
+
+            <Route path='employee-premission' element={<EmployeePermissions />}/>
+            
           </Route>
         </Route>
       </Routes>

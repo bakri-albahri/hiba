@@ -1,0 +1,532 @@
+/* =========================================
+   Global Bilingual / RTL-LTR Support
+   This file is imported from I18nProvider.js
+========================================= */
+
+.i18n-shell {
+  min-height: 100vh;
+}
+
+.global-language-switcher {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 5000;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 999px;
+  background: rgba(15, 35, 63, 0.86);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+
+  button {
+    border: 0;
+    min-width: 46px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: transparent;
+    color: #dbeafe;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 900;
+    transition: 0.2s ease;
+
+    &:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.10);
+    }
+
+    &.active {
+      background: #ffffff;
+      color: #10233f;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+    }
+  }
+}
+
+html[dir="rtl"] {
+  body {
+    direction: rtl;
+    text-align: right;
+  }
+
+  .global-language-switcher {
+    right: auto;
+    left: 14px;
+  }
+
+  input,
+  textarea,
+  select {
+    text-align: right;
+  }
+
+  table {
+    th,
+    td {
+      text-align: right;
+    }
+  }
+
+  .dashBoard {
+    direction: rtl;
+
+    .topBar {
+      .container {
+        h1 {
+          padding-left: 0;
+          padding-right: 18px;
+
+          &::before {
+            left: auto;
+            right: 0;
+          }
+        }
+      }
+    }
+
+    .SideBar {
+      direction: rtl;
+
+      a,
+      button {
+        text-align: right;
+      }
+    }
+  }
+
+  .stp2-page {
+    direction: rtl;
+    text-align: right;
+
+    .stp2-sidebar,
+    .stp2-main {
+      direction: rtl;
+    }
+
+    .stp2-hero {
+      .stp2-hero-actions {
+        justify-content: flex-start;
+      }
+    }
+
+    .stp2-card-title-row {
+      .stp2-soft-pill {
+        margin-left: 0;
+        margin-right: auto;
+      }
+    }
+
+    .stp2-info-item {
+      strong {
+        text-align: left;
+      }
+    }
+
+    .stp2-nav {
+      button {
+        text-align: right;
+      }
+    }
+  }
+
+  .add-items,
+  .showItems {
+    direction: rtl;
+
+    .db-page-det {
+      h1 {
+        padding-left: 0;
+        padding-right: 18px;
+
+        &::before {
+          left: auto;
+          right: 0;
+        }
+      }
+    }
+  }
+}
+
+html[dir="ltr"] {
+  body {
+    direction: ltr;
+    text-align: left;
+  }
+}
+
+@media (max-width: 900px) {
+  .global-language-switcher {
+    top: auto;
+    right: 12px;
+    bottom: 88px;
+  }
+
+  html[dir="rtl"] {
+    .global-language-switcher {
+      left: 12px;
+      right: auto;
+    }
+  }
+}
+
+/* =========================================================
+   Professional Arabic RTL Polish - Full System
+========================================================= */
+html[dir="rtl"],
+html[dir="rtl"] body {
+  font-family: "Tajawal", "Cairo", "Noto Kufi Arabic", "Segoe UI", Arial, sans-serif;
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="ltr"],
+html[dir="ltr"] body {
+  direction: ltr;
+  text-align: left;
+}
+
+html[dir="rtl"] .App,
+html[dir="rtl"] .dashBoard,
+html[dir="rtl"] .stp2-page,
+html[dir="rtl"] .edp-page,
+html[dir="rtl"] .fdp-page,
+html[dir="rtl"] .hsdp-page,
+html[dir="rtl"] .sadp-page,
+html[dir="rtl"] .reports-page,
+html[dir="rtl"] .doctor-page {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] input,
+html[dir="rtl"] textarea,
+html[dir="rtl"] select {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] input[type="email"],
+html[dir="rtl"] input[type="password"],
+html[dir="rtl"] input[type="url"],
+html[dir="rtl"] input[type="number"] {
+  direction: ltr;
+  text-align: left;
+}
+
+html[dir="rtl"] table th,
+html[dir="rtl"] table td {
+  text-align: right;
+}
+
+html[dir="rtl"] .global-language-switcher {
+  left: 14px;
+  right: auto;
+  flex-direction: row-reverse;
+}
+
+html[dir="ltr"] .global-language-switcher {
+  right: 14px;
+  left: auto;
+}
+
+html[dir="rtl"] .dashBoard .SideBar,
+html[dir="rtl"] .stp2-sidebar {
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 0;
+}
+
+html[dir="rtl"] .sidebar-nav a,
+html[dir="rtl"] .stp2-nav button,
+html[dir="rtl"] .sidebar-logout,
+html[dir="rtl"] .stp2-logout {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+html[dir="rtl"] .sidebar-nav a:hover,
+html[dir="rtl"] .stp2-nav button:hover {
+  transform: translateX(-3px);
+}
+
+html[dir="rtl"] .sidebar-brand,
+html[dir="rtl"] .sidebar-profile,
+html[dir="rtl"] .topbar-user,
+html[dir="rtl"] .stp2-brand,
+html[dir="rtl"] .stp2-profile-mini,
+html[dir="rtl"] .stp2-card-title-row,
+html[dir="rtl"] .stp2-section-head,
+html[dir="rtl"] .edp-card-title-row,
+html[dir="rtl"] .fdp-card-title-row,
+html[dir="rtl"] .hsdp-card-title-row,
+html[dir="rtl"] .sadp-card-title-row {
+  direction: rtl;
+}
+
+html[dir="rtl"] .stp2-row-actions,
+html[dir="rtl"] .topbar-actions,
+html[dir="rtl"] .edp-action-row,
+html[dir="rtl"] .fdp-action-row,
+html[dir="rtl"] .hsdp-action-row,
+html[dir="rtl"] .sadp-action-row {
+  justify-content: flex-start;
+}
+
+html[dir="rtl"] .stp2-btn,
+html[dir="rtl"] .button,
+html[dir="rtl"] button {
+  letter-spacing: 0;
+}
+
+html[dir="rtl"] .stp2-info-item,
+html[dir="rtl"] .edp-info-row,
+html[dir="rtl"] .fdp-info-row,
+html[dir="rtl"] .hsdp-info-row,
+html[dir="rtl"] .sadp-info-row {
+  direction: rtl;
+}
+
+html[dir="rtl"] .stp2-info-item strong,
+html[dir="rtl"] .stp2-info-item span {
+  text-align: right;
+}
+
+html[dir="rtl"] .stp2-table-wrap,
+html[dir="rtl"] .edp-table-wrap,
+html[dir="rtl"] .fdp-table-wrap,
+html[dir="rtl"] .hsdp-table-wrap,
+html[dir="rtl"] .sadp-table-wrap,
+html[dir="rtl"] .show-table-wrap {
+  direction: rtl;
+}
+
+html[dir="rtl"] .stp2-card-note,
+html[dir="rtl"] .stp2-empty,
+html[dir="rtl"] .stp2-error-note,
+html[dir="rtl"] .form-error {
+  text-align: right;
+}
+
+html[dir="rtl"] .stp2-service-types-grid button,
+html[dir="rtl"] .stp2-document-card,
+html[dir="rtl"] .stp2-calendar-item,
+html[dir="rtl"] .stp2-next-action,
+html[dir="rtl"] .stp2-notification,
+html[dir="rtl"] .stp2-request-card {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] .stp2-next-action,
+html[dir="rtl"] .stp2-service-types-grid button {
+  grid-template-columns: 42px minmax(0, 1fr);
+}
+
+html[dir="rtl"] .stp2-exam-reasons {
+  padding-left: 0;
+  padding-right: 18px;
+}
+
+html[dir="rtl"] .stp-badge,
+html[dir="rtl"] .stp2-soft-pill,
+html[dir="rtl"] .edp-soft-pill,
+html[dir="rtl"] .fdp-soft-pill,
+html[dir="rtl"] .hsdp-soft-pill,
+html[dir="rtl"] .sadp-soft-pill {
+  direction: rtl;
+}
+
+html[dir="rtl"] .show-pagination,
+html[dir="rtl"] .show-pagination-actions,
+html[dir="rtl"] .show-controls {
+  direction: rtl;
+}
+
+html[dir="rtl"] .db-page-det h1,
+html[dir="rtl"] .dashBoard .showItems .db-page-det h1 {
+  padding-left: 0;
+  padding-right: 18px;
+}
+
+html[dir="rtl"] .db-page-det h1::before,
+html[dir="rtl"] .dashBoard .showItems .db-page-det h1::before {
+  left: auto;
+  right: 0;
+}
+
+@media (max-width: 760px) {
+  .global-language-switcher {
+    top: 8px;
+    transform: scale(0.92);
+    transform-origin: top left;
+  }
+
+  html[dir="rtl"] .global-language-switcher {
+    transform-origin: top left;
+  }
+
+  html[dir="ltr"] .global-language-switcher {
+    transform-origin: top right;
+  }
+}
+
+/* =========================================================
+   Arabic polish patch v3
+   - Fixes RTL sidebars/navbar order
+   - Prevents mixed English leftovers from breaking card layout
+   - Keeps database values readable in RTL screens
+========================================================= */
+
+html[dir="rtl"] .dashBoard .SideBar,
+html[dir="rtl"] .stp2-sidebar {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] .sidebar-brand,
+html[dir="rtl"] .stp2-brand,
+html[dir="rtl"] .sidebar-profile,
+html[dir="rtl"] .stp2-profile-mini {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] .sidebar-brand > div:not(.sidebar-brand-icon),
+html[dir="rtl"] .stp2-brand > div:not(.stp2-brand-icon),
+html[dir="rtl"] .sidebar-profile > div:not(.sidebar-avatar),
+html[dir="rtl"] .stp2-profile-mini > div:not(.stp2-avatar) {
+  min-width: 0;
+  text-align: right;
+}
+
+html[dir="rtl"] .sidebar-profile strong,
+html[dir="rtl"] .sidebar-profile p,
+html[dir="rtl"] .stp2-profile-mini strong,
+html[dir="rtl"] .stp2-profile-mini p {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Sidebar/nav item: icon on the right, label next to it, badge on the left. */
+html[dir="rtl"] .sidebar-nav a,
+html[dir="rtl"] .stp2-nav button {
+  direction: rtl !important;
+  text-align: right !important;
+  justify-content: flex-start !important;
+  flex-direction: row !important;
+}
+
+html[dir="rtl"] .sidebar-nav a i,
+html[dir="rtl"] .stp2-nav button i {
+  order: 0 !important;
+  margin-left: 10px !important;
+  margin-right: 0 !important;
+}
+
+html[dir="rtl"] .sidebar-nav a span,
+html[dir="rtl"] .stp2-nav button span {
+  order: 1 !important;
+  flex: 1 1 auto !important;
+  text-align: right !important;
+  min-width: 0 !important;
+}
+
+html[dir="rtl"] .stp2-nav button em {
+  order: 2 !important;
+  margin-right: auto !important;
+  margin-left: 0 !important;
+}
+
+html[dir="rtl"] .sidebar-nav a:hover,
+html[dir="rtl"] .stp2-nav button:hover {
+  transform: translateX(-3px) !important;
+}
+
+html[dir="rtl"] .stp2-logout {
+  direction: rtl;
+  flex-direction: row;
+  text-align: right;
+}
+
+html[dir="rtl"] .stp2-logout i {
+  margin-left: 8px;
+  margin-right: 0;
+}
+
+/* Student portal cards: preserve Arabic reading flow and avoid punctuation/English layout glitches. */
+html[dir="rtl"] .stp2-page .stp2-card,
+html[dir="rtl"] .stp2-page .stp2-metric-card,
+html[dir="rtl"] .stp2-page .stp2-smart-action,
+html[dir="rtl"] .stp2-page .stp2-document-card,
+html[dir="rtl"] .stp2-page .stp2-info-item {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] .stp2-page .stp2-card-title-row,
+html[dir="rtl"] .stp2-page .stp2-section-head,
+html[dir="rtl"] .stp2-page .stp2-document-card-head,
+html[dir="rtl"] .stp2-page .stp2-metric-card {
+  direction: rtl;
+}
+
+html[dir="rtl"] .stp2-page .stp2-card-title-row h2,
+html[dir="rtl"] .stp2-page .stp2-section-head h2,
+html[dir="rtl"] .stp2-page .stp2-metric-card h3,
+html[dir="rtl"] .stp2-page .stp2-metric-card p,
+html[dir="rtl"] .stp2-page .stp2-metric-card span,
+html[dir="rtl"] .stp2-page .stp2-smart-action strong,
+html[dir="rtl"] .stp2-page .stp2-smart-action p {
+  text-align: right !important;
+  direction: rtl !important;
+}
+
+html[dir="rtl"] .stp2-page .stp2-metric-card h3,
+html[dir="rtl"] .stp2-page .stp2-metric-card span,
+html[dir="rtl"] .stp2-page .stp2-smart-action p {
+  overflow-wrap: anywhere;
+}
+
+html[dir="rtl"] .stp2-page .stp2-soft-pill {
+  direction: rtl;
+}
+
+html[dir="rtl"] .stp2-page table th,
+html[dir="rtl"] .stp2-page table td,
+html[dir="rtl"] .dashBoard table th,
+html[dir="rtl"] .dashBoard table td {
+  text-align: right !important;
+  direction: rtl;
+}
+
+/* Keep icons and numeric badges visually stable. */
+html[dir="rtl"] .fa,
+html[dir="rtl"] .fa-solid,
+html[dir="rtl"] .fa-regular,
+html[dir="rtl"] .fa-brands,
+html[dir="rtl"] .stp2-avatar,
+html[dir="rtl"] .sidebar-avatar,
+html[dir="rtl"] .stp2-badge,
+html[dir="rtl"] .stp2-soft-pill,
+html[dir="rtl"] .stp2-nav em {
+  unicode-bidi: isolate;
+}
+
+@media (max-width: 760px) {
+  html[dir="rtl"] .stp2-nav button {
+    flex-direction: column !important;
+    text-align: center !important;
+  }
+
+  html[dir="rtl"] .stp2-nav button i,
+  html[dir="rtl"] .stp2-nav button span,
+  html[dir="rtl"] .stp2-nav button em {
+    order: initial !important;
+    margin: 0 !important;
+    text-align: center !important;
+  }
+}
